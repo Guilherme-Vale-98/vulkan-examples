@@ -12,7 +12,12 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* data,
     void*                                       userData)
 {
-    SDL_LogError(SDL_LOG_CATEGORY_ERROR, "[validation] %s", data->pMessage);
+    const SDL_LogPriority priority =
+        (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)   ? SDL_LOG_PRIORITY_ERROR :
+        (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) ? SDL_LOG_PRIORITY_WARN  :
+        (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)    ? SDL_LOG_PRIORITY_INFO  :
+                                                                       SDL_LOG_PRIORITY_VERBOSE;
+    SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, priority, "[validation] %s", data->pMessage);
     const VkDebugUtilsMessageTypeFlagsEXT countedTypes =
         VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
         VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
