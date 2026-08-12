@@ -33,3 +33,13 @@ const char* vkResultString(VkResult result) {
         default:                                return "VK_ERROR_<unrecognised>";
     }
 }
+
+void setObjectName(VkDevice device, VkObjectType type, uint64_t handle, const char* name) {
+    if (!vkSetDebugUtilsObjectNameEXT) return;
+    VkDebugUtilsObjectNameInfoEXT info{VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT};
+    info.objectType   = type;
+    info.objectHandle = handle;
+    info.pObjectName  = name;
+    vkSetDebugUtilsObjectNameEXT(device, &info);
+}
+

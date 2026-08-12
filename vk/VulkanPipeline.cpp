@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <SDL3/SDL_iostream.h>
+
 std::vector<uint32_t> loadSpirv(const std::string& path) {
     SDL_IOStream* file = SDL_IOFromFile(path.c_str(), "rb");
 

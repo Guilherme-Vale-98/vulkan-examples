@@ -91,6 +91,7 @@ private:
         cfg.width  = 1280;
         cfg.height = 720;
         cfg.depth  = true;
+        cfg.forceValidation = true;
         return cfg;
     }
 

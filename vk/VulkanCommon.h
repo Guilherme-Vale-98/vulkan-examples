@@ -23,3 +23,6 @@ const char* vkResultString(VkResult result);
             std::abort();                                                     \
         }                                                                     \
     } while (0)
+
+
+void setObjectName(VkDevice device, VkObjectType type, uint64_t handle, const char* name);

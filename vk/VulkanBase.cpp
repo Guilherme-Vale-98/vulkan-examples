@@ -60,7 +60,7 @@ void VulkanBase::initVulkan() {
 #else
     cfg.enableValidation = config_.forceValidation;
 #endif
-
+    
     context_ = std::make_unique<VulkanContext>(
         cfg, [this](FeatureChain& chain) { onFeatures(chain); });
 

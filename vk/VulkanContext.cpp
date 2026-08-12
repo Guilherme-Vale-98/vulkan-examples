@@ -18,6 +18,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
         (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)    ? SDL_LOG_PRIORITY_INFO  :
                                                                        SDL_LOG_PRIORITY_VERBOSE;
     SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, priority, "[validation] %s", data->pMessage);
+
     const VkDebugUtilsMessageTypeFlagsEXT countedTypes =
         VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
         VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
@@ -195,6 +196,10 @@ void VulkanContext::createDevice(const VulkanContextConfig&                confi
 
     VK_CHECK(vkCreateDevice(physicalDevice_, &info, nullptr, &device_));
     volkLoadDevice(device_);
+    setObjectName(device_, VK_OBJECT_TYPE_DEVICE,
+              reinterpret_cast<uint64_t>(device_), "02.logica_device");
+
+
     vkGetDeviceQueue(device_, graphicsFamily_, 0, &graphicsQueue_);
 
     enabled_.dynamicRendering    = chain.f13.dynamicRendering;
