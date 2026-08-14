@@ -19,9 +19,11 @@ public:
 
     ~TriangleExample() override {
         VkDevice device = context().device();
-        if (pipeline_) vkDestroyPipeline(device, pipeline_, nullptr);
-        if (layout_)   vkDestroyPipelineLayout(device, layout_, nullptr);
+        if (pipeline_)  vkDestroyPipeline(device, pipeline_, nullptr);
+        if (layout_)    vkDestroyPipelineLayout(device, layout_, nullptr);
+        if (setLayout_) vkDestroyDescriptorSetLayout(device, setLayout_, nullptr);
     }
+
 
 protected:
     void onInit() override {
