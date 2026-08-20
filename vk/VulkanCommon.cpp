@@ -1,6 +1,6 @@
 #include "VulkanCommon.h"
 
-const char* vkResultString(VkResult result) {
+const char* VulkanCommon::resultString(VkResult result) {
     switch (result) {
         case VK_SUCCESS:                        return "VK_SUCCESS";
         case VK_NOT_READY:                      return "VK_NOT_READY";
@@ -34,7 +34,7 @@ const char* vkResultString(VkResult result) {
     }
 }
 
-void setObjectName(VkDevice device, VkObjectType type, uint64_t handle, const char* name) {
+void VulkanCommon::setObjectName(VkDevice device, VkObjectType type, uint64_t handle, const char* name) {
     if (!vkSetDebugUtilsObjectNameEXT) return;
     VkDebugUtilsObjectNameInfoEXT info{VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT};
     info.objectType   = type;

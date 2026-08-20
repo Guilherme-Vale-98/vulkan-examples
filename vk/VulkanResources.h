@@ -113,9 +113,11 @@ private:
     VkExtent2D    extent_{};
 };
 
+namespace VulkanResources {
+
 VulkanBuffer createBuffer(VulkanContext& ctx, VkDeviceSize size,
                           VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage,
-                          bool hostVisible, bool hostRandomAccess = false);
+                          bool hostVisible, bool hostRandomAccess = false, VkDeviceSize minAlignment = 0);
 
 VulkanBuffer createBufferWithData(VulkanContext& ctx, const void* data,
                                   VkDeviceSize size, VkBufferUsageFlags usage);
@@ -129,3 +131,7 @@ VulkanImage createImage(VulkanContext& ctx, VkExtent2D extent, VkFormat format,
 void transitionImage(VkCommandBuffer cmd, VkImage image,
                      VkImageLayout from, VkImageLayout to,
                      VkImageAspectFlags aspect);
+
+}
+
+

@@ -196,7 +196,7 @@ void VulkanContext::createDevice(const VulkanContextConfig&                confi
 
     VK_CHECK(vkCreateDevice(physicalDevice_, &info, nullptr, &device_));
     volkLoadDevice(device_);
-    setObjectName(device_, VK_OBJECT_TYPE_DEVICE,
+    VulkanCommon::setObjectName(device_, VK_OBJECT_TYPE_DEVICE,
               reinterpret_cast<uint64_t>(device_), "02.logica_device");
 
 

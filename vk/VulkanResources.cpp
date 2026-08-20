@@ -2,9 +2,9 @@
 
 #include <cstring>
 
-VulkanBuffer createBuffer(VulkanContext& ctx, VkDeviceSize size,
+VulkanBuffer VulkanResources::createBuffer(VulkanContext& ctx, VkDeviceSize size,
                           VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage,
-                          bool hostVisible, bool hostRandomAccess)
+                          bool hostVisible, bool hostRandomAccess, VkDeviceSize minAlignment)
 {
     VkBufferCreateInfo info{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
     info.size  = size;
@@ -21,7 +21,31 @@ VulkanBuffer createBuffer(VulkanContext& ctx, VkDeviceSize size,
     VkBuffer          buffer{};
     VmaAllocation     allocation{};
     VmaAllocationInfo allocInfo{};
-    VK_CHECK(vmaCreateBuffer(ctx.allocator(), &info, &alloc, &buffer, &allocation, &allocInfo));
+    
+    VkResult result;
+    if (minAlignment != 0) {
+        result = vmaCreateBufferWithAlignment(
+            ctx.allocator(),
+            &info,
+            &alloc,
+            minAlignment,
+            &buffer,
+            &allocation,
+            &allocInfo);
+    }
+
+    if (minAlignment == 0){
+        result = vmaCreateBuffer(
+            ctx.allocator(),
+            &info,
+            &alloc,
+            &buffer,
+            &allocation,
+            &allocInfo);
+    }
+    
+    VK_CHECK(result);
+
 
     VkBufferDeviceAddressInfo addressInfo{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO};
     addressInfo.buffer = buffer;
@@ -31,14 +55,14 @@ VulkanBuffer createBuffer(VulkanContext& ctx, VkDeviceSize size,
                         hostVisible ? allocInfo.pMappedData : nullptr);
 }
 
-VulkanBuffer createBufferWithData(VulkanContext& ctx, const void* data,
+VulkanBuffer VulkanResources::createBufferWithData(VulkanContext& ctx, const void* data,
                                   VkDeviceSize size, VkBufferUsageFlags usage)
 {
-    VulkanBuffer staging = createBuffer(ctx, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    VulkanBuffer staging = VulkanResources::createBuffer(ctx, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                         VMA_MEMORY_USAGE_AUTO_PREFER_HOST, true);
     std::memcpy(staging.mapped(), data, static_cast<size_t>(size));
 
-    VulkanBuffer result = createBuffer(ctx, size, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+    VulkanBuffer result = VulkanResources::createBuffer(ctx, size, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                                                       VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                        VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, false);
 
@@ -51,10 +75,10 @@ VulkanBuffer createBufferWithData(VulkanContext& ctx, const void* data,
     return result;
 }
 
-void readbackBuffer(VulkanContext& ctx, const VulkanBuffer& src,
+void VulkanResources::readbackBuffer(VulkanContext& ctx, const VulkanBuffer& src,
                     void* dst, VkDeviceSize size)
 {
-    VulkanBuffer staging = createBuffer(ctx, size, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+    VulkanBuffer staging = VulkanResources::createBuffer(ctx, size, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                         VMA_MEMORY_USAGE_AUTO_PREFER_HOST, true, true);
 
     VkCommandBuffer cmd = ctx.beginOneShot();
@@ -67,7 +91,7 @@ void readbackBuffer(VulkanContext& ctx, const VulkanBuffer& src,
     std::memcpy(dst, staging.mapped(), static_cast<size_t>(size));
 }
 
-VulkanImage createImage(VulkanContext& ctx, VkExtent2D extent, VkFormat format,
+VulkanImage VulkanResources::createImage(VulkanContext& ctx, VkExtent2D extent, VkFormat format,
                         VkImageUsageFlags usage, VkImageAspectFlags aspect)
 {
     VkImageCreateInfo info{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
@@ -102,7 +126,7 @@ VulkanImage createImage(VulkanContext& ctx, VkExtent2D extent, VkFormat format,
     return VulkanImage(ctx.device(), ctx.allocator(), image, allocation, view, format, extent);
 }
 
-void transitionImage(VkCommandBuffer cmd, VkImage image,
+void VulkanResources::transitionImage(VkCommandBuffer cmd, VkImage image,
                      VkImageLayout from, VkImageLayout to,
                      VkImageAspectFlags aspect)
 {

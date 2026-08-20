@@ -5,6 +5,8 @@
 #include "VulkanPipeline.h"
 #include "VulkanResources.h"
 #include "VulkanSwapchain.h"
+#include "VulkanCamera.h"
+#include "VulkanDescriptorHeap.h"
 
 #include <SDL3/SDL.h>
 

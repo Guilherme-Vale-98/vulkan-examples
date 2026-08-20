@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <SDL3/SDL_iostream.h>
 
-std::vector<uint32_t> loadSpirv(const std::string& path) {
+std::vector<uint32_t> VulkanPipeline::loadSpirv(const std::string& path) {
     SDL_IOStream* file = SDL_IOFromFile(path.c_str(), "rb");
 
     if (!file) {
@@ -56,12 +56,12 @@ std::vector<uint32_t> loadSpirv(const std::string& path) {
 }
 
 
-std::string shaderDir(const std::string& exampleName) {
+std::string VulkanPipeline::shaderDir(const std::string& exampleName) {
     const char* base = SDL_GetBasePath();
     return std::string(base ? base : "") + "shaders/" + exampleName + "/";
 }
 
-VkPipelineLayout createPipelineLayout(VkDevice device,
+VkPipelineLayout VulkanPipeline::createLayout(VkDevice device,
                                       uint32_t pushConstantBytes,
                                       VkDescriptorSetLayout setLayout)
 {
@@ -105,7 +105,14 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::topology(VkPrimitiveTopology t
     topology_ = t; return *this;
 }
 
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::configure(
+    std::function<void(PipelineBuildContext&)> callback){
+
+    callback_ = std::move(callback); return *this;
+}
 VkPipeline GraphicsPipelineBuilder::build(VkPipelineLayout layout) {
+    blocks_.clear();
+    dynamicStates_ = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
     VkShaderModuleCreateInfo vertModule{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
     vertModule.codeSize = vertexSpirv_.size() * sizeof(uint32_t);
     vertModule.pCode    = vertexSpirv_.data();
@@ -152,6 +159,7 @@ VkPipeline GraphicsPipelineBuilder::build(VkPipelineLayout layout) {
 
     VkPipelineDepthStencilStateCreateInfo depthStencil{
         VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
+
     depthStencil.depthTestEnable  = depthTest_ ? VK_TRUE : VK_FALSE;
     depthStencil.depthWriteEnable = depthTest_ ? VK_TRUE : VK_FALSE;
     depthStencil.depthCompareOp   = VK_COMPARE_OP_LESS_OR_EQUAL;
@@ -166,11 +174,10 @@ VkPipeline GraphicsPipelineBuilder::build(VkPipelineLayout layout) {
     blend.attachmentCount = 1;
     blend.pAttachments    = &blendAttachment;
 
-    const VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+    
     VkPipelineDynamicStateCreateInfo dynamic{
         VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
-    dynamic.dynamicStateCount = 2;
-    dynamic.pDynamicStates    = dynamicStates;
+  
 
     VkPipelineRenderingCreateInfo rendering{VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
     rendering.colorAttachmentCount    = 1;
@@ -192,6 +199,29 @@ VkPipeline GraphicsPipelineBuilder::build(VkPipelineLayout layout) {
     info.layout              = layout;
     info.renderPass          = VK_NULL_HANDLE;
 
+
+    if(callback_){
+        PipelineBuildContext ctx{
+            .info            = info,
+            .stages          = stages,
+            .stageCount      = 2u,
+            .vertexInput     = vertexInput,
+            .inputAssembly   = inputAssembly,
+            .viewport        = viewport,
+            .rasterization   = raster,
+            .multisample     = multisample,
+            .depthStencil    = depthStencil,
+            .blend           = blend,
+            .blendAttachment = blendAttachment,
+            .rendering       = rendering,
+            .dynamicStates   = dynamicStates_,
+            .blocks          = blocks_,
+        };
+
+      callback_(ctx);
+    }
+    dynamic.dynamicStateCount = static_cast<uint32_t>(dynamicStates_.size());
+    dynamic.pDynamicStates    = dynamicStates_.data();
     VkPipeline pipeline = VK_NULL_HANDLE;
     VK_CHECK(vkCreateGraphicsPipelines(device_, VK_NULL_HANDLE, 1, &info, nullptr, &pipeline));
     return pipeline;

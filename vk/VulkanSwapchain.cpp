@@ -153,7 +153,7 @@ void VulkanSwapchain::build(VkExtent2D extent) {
     }
 
     if (wantDepth_) {
-        depth_ = createImage(ctx_, extent_, depthFormat_,
+        depth_ = VulkanResources::createImage(ctx_, extent_, depthFormat_,
                              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                              VK_IMAGE_ASPECT_DEPTH_BIT);
     }

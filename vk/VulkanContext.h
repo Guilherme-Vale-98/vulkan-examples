@@ -89,6 +89,14 @@ public:
     const char*      deviceName()     const { return deviceName_; }
     const Enabled&   enabled()        const { return enabled_; }
 
+    template <typename T>
+    T properties(T query) const {
+        VkPhysicalDeviceProperties2 chain{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
+        chain.pNext = &query;
+        vkGetPhysicalDeviceProperties2(physicalDevice_, &chain);
+        return query;
+    }
+
     unsigned         validationMessageCount() const { return validationMessages_; }
 
     VkCommandBuffer beginOneShot();

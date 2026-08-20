@@ -19,11 +19,9 @@ public:
 
     ~TriangleExample() override {
         VkDevice device = context().device();
-        if (pipeline_)  vkDestroyPipeline(device, pipeline_, nullptr);
-        if (layout_)    vkDestroyPipelineLayout(device, layout_, nullptr);
-        if (setLayout_) vkDestroyDescriptorSetLayout(device, setLayout_, nullptr);
+        if (pipeline_) vkDestroyPipeline(device, pipeline_, nullptr);
+        if (layout_)   vkDestroyPipelineLayout(device, layout_, nullptr);
     }
-
 
 protected:
     void onInit() override {
@@ -33,22 +31,22 @@ protected:
             {{-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
         }};
 
-        vertices_ = createBufferWithData(context(), vertices.data(), sizeof(vertices),
+        vertices_ = VulkanResources::createBufferWithData(context(), vertices.data(), sizeof(vertices),
                                          VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 
         transforms_.resize(config().framesInFlight);
         for (auto& buffer : transforms_) {
-            buffer = createBuffer(context(), sizeof(Transform),
+            buffer = VulkanResources::createBuffer(context(), sizeof(Transform),
                               VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                               VMA_MEMORY_USAGE_AUTO_PREFER_HOST, true);
         }
         createDescriptorLayout();
-        layout_ = createPipelineLayout(context().device(), 0, setLayout_);
-        setObjectName(context().device(), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
+        layout_ = VulkanPipeline::createLayout(context().device(), 0, setLayout_);
+        VulkanCommon::setObjectName(context().device(), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
               reinterpret_cast<uint64_t>(setLayout_), "02.materialSetLayout");
         pipeline_ = GraphicsPipelineBuilder(context().device())
-                        .shaders(loadSpirv(shaderPath("push.vert.spv")),
-                                 loadSpirv(shaderPath("push.frag.spv")))
+                        .shaders(VulkanPipeline::loadSpirv(shaderPath("push.vert.spv")),
+                                 VulkanPipeline::loadSpirv(shaderPath("push.frag.spv")))
                         .colorFormat(swapchain().format())
                         .depthFormat(swapchain().depthFormat())
                         .depthTest(true)

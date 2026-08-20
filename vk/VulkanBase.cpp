@@ -20,7 +20,7 @@ VulkanBase::~VulkanBase() {
 }
 
 std::string VulkanBase::shaderPath(const std::string& file) const {
-    return shaderDir(config_.name) + file;
+    return VulkanPipeline::shaderDir(config_.name) + file;
 }
 
 void VulkanBase::initWindow() {
@@ -100,7 +100,7 @@ bool VulkanBase::renderFrame() {
 
     if (acquired == VK_ERROR_OUT_OF_DATE_KHR) return false;
     if (acquired != VK_SUCCESS && acquired != VK_SUBOPTIMAL_KHR) {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "vkAcquireNextImageKHR: %s", vkResultString(acquired));
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "vkAcquireNextImageKHR: %s", VulkanCommon::resultString(acquired));
         std::abort();
     }
 
@@ -111,12 +111,12 @@ bool VulkanBase::renderFrame() {
     begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     VK_CHECK(vkBeginCommandBuffer(cmd, &begin));
 
-    transitionImage(cmd, swapchain_->image(imageIndex),
+    VulkanResources::transitionImage(cmd, swapchain_->image(imageIndex),
                     VK_IMAGE_LAYOUT_UNDEFINED, config_.renderLayout,
                     VK_IMAGE_ASPECT_COLOR_BIT);
 
     if (swapchain_->depthView() != VK_NULL_HANDLE) {
-        transitionImage(cmd, swapchain_->depthImage(),
+        VulkanResources::transitionImage(cmd, swapchain_->depthImage(),
                         VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
                         VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -141,7 +141,7 @@ bool VulkanBase::renderFrame() {
 
     onRender(cmd, frame);
 
-    transitionImage(cmd, swapchain_->image(imageIndex),
+    VulkanResources::transitionImage(cmd, swapchain_->image(imageIndex),
                     config_.renderLayout, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                     VK_IMAGE_ASPECT_COLOR_BIT);
 
@@ -189,7 +189,7 @@ bool VulkanBase::renderFrame() {
 
     if (presented == VK_ERROR_OUT_OF_DATE_KHR || presented == VK_SUBOPTIMAL_KHR) return false;
     if (presented != VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "vkQueuePresentKHR: %s", vkResultString(presented));
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "vkQueuePresentKHR: %s", VulkanCommon::resultString(presented));
         std::abort();
     }
     return true;

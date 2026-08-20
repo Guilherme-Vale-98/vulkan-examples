@@ -34,14 +34,14 @@ protected:
             {{-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
         }};
 
-        vertices_ = createBufferWithData(context(), vertices.data(), sizeof(vertices),
+        vertices_ = VulkanResources::createBufferWithData(context(), vertices.data(), sizeof(vertices),
                                          VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 
-        layout_ = createPipelineLayout(context().device(), sizeof(TrianglePush), VK_NULL_HANDLE);
+        layout_ = VulkanPipeline::createLayout(context().device(), sizeof(TrianglePush), VK_NULL_HANDLE);
 
         pipeline_ = GraphicsPipelineBuilder(context().device())
-                        .shaders(loadSpirv(shaderPath("triangle.vert.spv")),
-                                 loadSpirv(shaderPath("triangle.frag.spv")))
+                        .shaders(VulkanPipeline::loadSpirv(shaderPath("triangle.vert.spv")),
+                                 VulkanPipeline::loadSpirv(shaderPath("triangle.frag.spv")))
                         .colorFormat(swapchain().format())
                         .depthFormat(swapchain().depthFormat())
                         .depthTest(true)
