@@ -43,7 +43,7 @@ void VulkanSwapchain::create(VkSurfaceKHR surface, VkExtent2D extent,
     format_     = formats[0].format;
     colorSpace_ = formats[0].colorSpace;
     for (const auto& f : formats) {
-        if (f.format == VK_FORMAT_B8G8R8A8_UNORM &&
+        if (f.format == VK_FORMAT_B8G8R8A8_SRGB &&
             f.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             format_     = f.format;
             colorSpace_ = f.colorSpace;

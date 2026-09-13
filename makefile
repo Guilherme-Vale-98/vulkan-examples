@@ -36,7 +36,9 @@ VOLK_SRC     = $(VULKAN_SDK)/Include/Volk/volk.c
 
 TEXTURE_ASSETS = \
 	assets/container.jpg \
-	assets/awesomeface.png
+	assets/container2.png \
+	assets/awesomeface.png \
+	assets/container2_specular.png \
 
 TEXTURE_RUNTIME_ASSETS = \
 	$(TEXTURE_ASSETS:assets/%=$(BIN_DIR)/assets/%)
@@ -122,6 +124,7 @@ endef
 
 $(foreach e,$(EXAMPLES),$(eval $(call EXAMPLE_RULE,$(e))))
 $(BIN_DIR)/05_texture_mapping.exe: $(TEXTURE_RUNTIME_ASSETS)
+$(BIN_DIR)/06_lighting_maps.exe: $(TEXTURE_RUNTIME_ASSETS)
 examples: $(EXAMPLES)
 
 clean:
