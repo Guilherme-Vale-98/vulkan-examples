@@ -7,7 +7,8 @@
 #include "VulkanSwapchain.h"
 #include "VulkanCamera.h"
 #include "VulkanDescriptorHeap.h"
-
+#include "VulkanSamplerHeap.h"
+#include "VulkanTexture.h"
 #include <SDL3/SDL.h>
 
 #include <memory>

@@ -10,7 +10,6 @@ struct DescriptorSlot {
 };
 
 
-
 class VulkanDescriptorHeap {
 public:
     VulkanDescriptorHeap() = default;

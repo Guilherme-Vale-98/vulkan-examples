@@ -11,7 +11,8 @@ INCLUDES = \
 	-isystem "$(SDL_DIR)/include" \
 	-isystem "$(VULKAN_SDK)/Include" \
 	-iquote vk \
-	-iquote tests
+	-iquote tests \
+	-iquote third_party
 
 DEFINES = -DVK_NO_PROTOTYPES -DVK_USE_PLATFORM_WIN32_KHR
 
@@ -32,7 +33,15 @@ BIN_DIR      = $(BUILD_DIR)/bin
 TEST_BIN_DIR = $(BUILD_DIR)/testbin
 VOLK_SRC     = $(VULKAN_SDK)/Include/Volk/volk.c
 
-BASE_SRCS = $(wildcard vk/*.cpp)
+
+TEXTURE_ASSETS = \
+	assets/container.jpg \
+	assets/awesomeface.png
+
+TEXTURE_RUNTIME_ASSETS = \
+	$(TEXTURE_ASSETS:assets/%=$(BIN_DIR)/assets/%)
+
+BASE_SRCS = $(wildcard vk/*.cpp)  $(wildcard third_party/*.cpp)
 BASE_OBJS = $(BASE_SRCS:%.cpp=$(BUILD_DIR)/%.o) $(BUILD_DIR)/volk.o
 
 EXAMPLES  = $(notdir $(wildcard examples/*))
@@ -56,6 +65,9 @@ $(BUILD_DIR)/volk.o: $(VOLK_SRC)
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c "$(VOLK_SRC)" -o $@
 
+$(BIN_DIR)/assets/%: assets/%
+	@mkdir -p $(@D)
+	cp "$<" "$@"
 # ---------- runtime DLL ----------
 $(BIN_DIR)/SDL3.dll: $(SDL_DIR)/bin/SDL3.dll
 	@mkdir -p $(@D)
@@ -109,7 +121,7 @@ run-$(1): $(1)
 endef
 
 $(foreach e,$(EXAMPLES),$(eval $(call EXAMPLE_RULE,$(e))))
-
+$(BIN_DIR)/05_texture_mapping.exe: $(TEXTURE_RUNTIME_ASSETS)
 examples: $(EXAMPLES)
 
 clean:

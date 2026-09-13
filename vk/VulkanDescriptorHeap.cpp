@@ -12,6 +12,7 @@ VkDeviceSize alignUp(VkDeviceSize v, VkDeviceSize a) {
 }
 }
 
+constexpr int INITIAL_HEAP_CAPACITY = 32;
 
 void DescriptorHeap::requireFeature(FeatureChain& chain) {
     chain.require(VK_EXT_DESCRIPTOR_HEAP_EXTENSION_NAME);
@@ -67,10 +68,7 @@ VulkanDescriptorHeap::VulkanDescriptorHeap(VulkanContext& ctx) {
 
     reservedSize_ = props_.minResourceHeapReservedRange;
     cursor_       = reservedSize_;
-    assert(reservedSize_ <= props_.maxResourceHeapSize);
-    
-
-    reserve(ctx, reservedSize_ + 2);
+    reserve(ctx, reservedSize_ + 32);
 }
 
 void VulkanDescriptorHeap::reserve(VulkanContext& ctx, VkDeviceSize byteCapacity) {
@@ -84,7 +82,7 @@ void VulkanDescriptorHeap::reserve(VulkanContext& ctx, VkDeviceSize byteCapacity
     VulkanBuffer bigger = VulkanResources::createBuffer(ctx, byteCapacity,
                                        VK_BUFFER_USAGE_DESCRIPTOR_HEAP_BIT_EXT |
                                        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                                       VMA_MEMORY_USAGE_AUTO_PREFER_HOST, true,false, props_.resourceHeapAlignment);
+                                       VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, true,false, props_.resourceHeapAlignment);
 
     assert(bigger.mapped() != nullptr);
     assert(bigger.address() % props_.resourceHeapAlignment == 0);
@@ -112,7 +110,9 @@ DescriptorSlot VulkanDescriptorHeap::allocate(VulkanContext& ctx, VkDescriptorTy
     const VkDeviceSize end    = offset + size;
 
     if (end > buffer_.size()) {
-        reserve(ctx, std::max(end, buffer_.size() * 2));
+        VkDeviceSize needed = end - reservedSize_;
+        VkDeviceSize doubled = 2 * (buffer_.size() - reservedSize_);
+        reserve(ctx, reservedSize_ + std::max(needed, doubled));
     }
 
     cursor_ = end;
@@ -164,6 +164,7 @@ void VulkanDescriptorHeap::writeImage(DescriptorSlot slot,
     };
 
     VK_CHECK(vkWriteResourceDescriptorsEXT(device_, 1, &resource, &dst));
+    buffer_.flush(slot.offset, slot.size);
 }
 
 void VulkanDescriptorHeap::bind(VkCommandBuffer cmd) const {

@@ -22,29 +22,15 @@ VulkanBuffer VulkanResources::createBuffer(VulkanContext& ctx, VkDeviceSize size
     VmaAllocation     allocation{};
     VmaAllocationInfo allocInfo{};
     
-    VkResult result;
-    if (minAlignment != 0) {
-        result = vmaCreateBufferWithAlignment(
+    
+    VK_CHECK(vmaCreateBufferWithAlignment(
             ctx.allocator(),
             &info,
             &alloc,
             minAlignment,
             &buffer,
             &allocation,
-            &allocInfo);
-    }
-
-    if (minAlignment == 0){
-        result = vmaCreateBuffer(
-            ctx.allocator(),
-            &info,
-            &alloc,
-            &buffer,
-            &allocation,
-            &allocInfo);
-    }
-    
-    VK_CHECK(result);
+            &allocInfo));
 
 
     VkBufferDeviceAddressInfo addressInfo{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO};
@@ -128,8 +114,7 @@ VulkanImage VulkanResources::createImage(VulkanContext& ctx, VkExtent2D extent, 
 
 void VulkanResources::transitionImage(VkCommandBuffer cmd, VkImage image,
                      VkImageLayout from, VkImageLayout to,
-                     VkImageAspectFlags aspect)
-{
+                     VkImageAspectFlags aspect){
     VkImageMemoryBarrier2 barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2};
     barrier.srcStageMask  = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
     barrier.srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT;

@@ -34,6 +34,13 @@ public:
         }
     }
 
+    void flush(VkDeviceSize offset = 0,
+           VkDeviceSize size = VK_WHOLE_SIZE) {
+         if (buffer_ != VK_NULL_HANDLE) {
+             VK_CHECK(vmaFlushAllocation(allocator_, allocation_, offset, size));
+         };
+    }
+
     void reset() {
         if (buffer_ != VK_NULL_HANDLE) {
             vmaDestroyBuffer(allocator_, buffer_, allocation_);
