@@ -13,11 +13,11 @@ public:
     VulkanSwapchain(const VulkanSwapchain&)            = delete;
     VulkanSwapchain& operator=(const VulkanSwapchain&) = delete;
 
-    void create(VkSurfaceKHR surface, VkExtent2D extent,
+    bool create(VkSurfaceKHR surface, VkExtent2D extent,
                 VkPresentModeKHR presentMode, bool wantDepth,
                 VkImageUsageFlags swapchainUsage =
                     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
-    void recreate(VkExtent2D extent);
+    bool recreate(VkExtent2D extent);
     void destroy();
 
     VkSwapchainKHR handle()      const { return swapchain_; }
@@ -33,7 +33,7 @@ public:
     uint32_t       presentFamily() const { return presentFamily_; }
 
 private:
-    void build(VkExtent2D extent);
+    bool build(VkExtent2D extent);
     void destroyImageViews();
 
     VulkanContext&           ctx_;

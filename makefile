@@ -125,6 +125,7 @@ endef
 $(foreach e,$(EXAMPLES),$(eval $(call EXAMPLE_RULE,$(e))))
 $(BIN_DIR)/05_texture_mapping.exe: $(TEXTURE_RUNTIME_ASSETS)
 $(BIN_DIR)/06_lighting_maps.exe: $(TEXTURE_RUNTIME_ASSETS)
+$(BIN_DIR)/07_light_casters.exe: $(TEXTURE_RUNTIME_ASSETS)
 examples: $(EXAMPLES)
 
 clean:

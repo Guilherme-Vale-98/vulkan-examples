@@ -46,7 +46,7 @@ void VulkanBase::initWindow() {
     }
 }
 
-void VulkanBase::initVulkan() {
+bool VulkanBase::initVulkan() {
     uint32_t extCount = 0;
     const char* const* sdlExts = SDL_Vulkan_GetInstanceExtensions(&extCount);
 
@@ -70,22 +70,77 @@ void VulkanBase::initVulkan() {
     }
 
     swapchain_ = std::make_unique<VulkanSwapchain>(*context_);
-    swapchain_->create(surface_, VkExtent2D{config_.width, config_.height},
-                       config_.presentMode, config_.depth, config_.swapchainUsage);
+
+    while (true) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT ||
+                (event.type == SDL_EVENT_KEY_DOWN &&
+                 event.key.key == SDLK_ESCAPE)) {
+                return false;
+            }
+        }
+
+        int w = 0;
+        int h = 0;
+        SDL_GetWindowSizeInPixels(window_, &w, &h);
+
+        if (w > 0 && h > 0) {
+            const bool ready = swapchain_->create(
+                surface_,
+                VkExtent2D{
+                    static_cast<uint32_t>(w),
+                    static_cast<uint32_t>(h)
+                },
+                config_.presentMode,
+                config_.depth,
+                config_.swapchainUsage);
+
+            if (ready) {
+                break;
+            }
+        }
+
+        SDL_Delay(10);
+    }
 
     frames_ = std::make_unique<VulkanFrames>(*context_);
-    frames_->create(config_.framesInFlight, swapchain_->imageCount());
+    frames_->create(
+        config_.framesInFlight,
+        swapchain_->imageCount());
+
+    return true;
+
 }
 
 void VulkanBase::recreateSwapchain() {
-    int w = 0, h = 0;
-    SDL_GetWindowSizeInPixels(window_, &w, &h);
-    if (w <= 0 || h <= 0) return;
+    needsRecreate_ = true;
 
-    swapchain_->recreate(VkExtent2D{static_cast<uint32_t>(w), static_cast<uint32_t>(h)});
+    int w = 0;
+    int h = 0;
+    SDL_GetWindowSizeInPixels(window_, &w, &h);
+
+    if (w <= 0 || h <= 0) {
+        SDL_Delay(10);
+        return;
+    }
+
+    const bool ready = swapchain_->recreate({
+        static_cast<uint32_t>(w),
+        static_cast<uint32_t>(h)
+    });
+
+    if (!ready) {
+        SDL_Delay(10);
+        return;
+    }
+
     frames_->recreateImageSemaphores(swapchain_->imageCount());
+
     needsRecreate_ = false;
-    onResize(swapchain_->extent().width, swapchain_->extent().height);
+    onResize(
+        swapchain_->extent().width,
+        swapchain_->extent().height);
 }
 
 bool VulkanBase::renderFrame() {
@@ -197,7 +252,11 @@ bool VulkanBase::renderFrame() {
 
 int VulkanBase::run() {
     initWindow();
-    initVulkan();
+    
+    if(!initVulkan()){
+      return 0;
+    }
+
     onInit();
 
     bool     running = true;

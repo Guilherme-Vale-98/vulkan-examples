@@ -72,7 +72,7 @@ protected:
 
 private:
     void initWindow();
-    void initVulkan();
+    bool initVulkan();
     void recreateSwapchain();
     bool renderFrame();
 

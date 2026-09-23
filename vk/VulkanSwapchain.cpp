@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-void VulkanSwapchain::create(VkSurfaceKHR surface, VkExtent2D extent,
+bool VulkanSwapchain::create(VkSurfaceKHR surface, VkExtent2D extent,
                              VkPresentModeKHR presentMode, bool wantDepth,
                              VkImageUsageFlags swapchainUsage)
 {
@@ -53,18 +53,22 @@ void VulkanSwapchain::create(VkSurfaceKHR surface, VkExtent2D extent,
 
     if (wantDepth_) depthFormat_ = VK_FORMAT_D32_SFLOAT;
 
-    build(extent);
+    return build(extent);
 }
 
-void VulkanSwapchain::recreate(VkExtent2D extent) {
+bool VulkanSwapchain::recreate(VkExtent2D extent) {
     VK_CHECK(vkDeviceWaitIdle(ctx_.device()));
-    build(extent);
+    return build(extent);
 }
 
-void VulkanSwapchain::build(VkExtent2D extent) {
+bool VulkanSwapchain::build(VkExtent2D extent) {
     VkSurfaceCapabilitiesKHR caps{};
     VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ctx_.physicalDevice(), surface_, &caps));
-
+    if (caps.maxImageExtent.width == 0 ||
+        caps.maxImageExtent.height == 0) {
+        return false;
+    }
+  
     if (caps.currentExtent.width != UINT32_MAX) {
         extent = caps.currentExtent;
     } else {
@@ -157,6 +161,7 @@ void VulkanSwapchain::build(VkExtent2D extent) {
                              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                              VK_IMAGE_ASPECT_DEPTH_BIT);
     }
+    return true;
 }
 
 void VulkanSwapchain::destroyImageViews() {
